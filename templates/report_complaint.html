@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Report Complaint{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4">
+            <h3 class="mb-4">Report a Complaint</h3>
+            {% if success %}
+                <div class="alert alert-success">{{ success }}</div>
+            {% endif %}
+            {% if user and user.role == 'authority' %}
+                <div class="alert alert-warning">
+                    You are logged in as an authority user. Use the <a href="{{ url_for('authority_dashboard') }}">Authority Dashboard</a> to manage and close complaints. This form is intended for public complaint submission.
+                </div>
+            {% endif %}
+            <form method="post" action="{{ url_for('report_complaint') }}">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="ward_id">Ward ID</label>
+                        <input type="text" class="form-control" id="ward_id" name="ward_id" placeholder="Enter ward" required />
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="category">Complaint Category</label>
+                        <select class="form-control" id="category" name="category">
+                            <option>Garbage</option>
+                            <option>Waterlogging</option>
+                            <option>Sanitation</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="description">Detailed Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
+                </div>
+                {% if not session.get('user') %}
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="name">Your Name</label>
+                            <input type="text" class="form-control" id="name" name="name" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="email">Your Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required />
+                        </div>
+                    </div>
+                {% endif %}
+                <button type="submit" class="btn btn-primary">Submit Complaint</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

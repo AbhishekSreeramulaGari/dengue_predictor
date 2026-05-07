@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bengaluru Dengue Risk Predictor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --light-bg: #f8f9fa;
+            --white: #ffffff;
+            --text: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --light-bg: #0f172a;
+                --white: #1e293b;
+                --text: #f1f5f9;
+                --text-muted: #94a3b8;
+                --border: #334155;
+            }
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--light-bg) 0%, #f0f4ff 100%);
+            min-height: 100vh;
+            padding: 0;
+            color: var(--text);
+            transition: background 0.3s ease;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            }
+        }
+
+        /* Header & Navigation */
+        .header {
+            background: var(--white);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .header {
+                background: #1e293b;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--light-bg);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            font-size: 0.875rem;
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* Page Title */
+        .page-title {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-title p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* Card Layout */
+        .card {
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .card {
+                background: #1e293b;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        .card:hover {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 2px;
+        }
+
+        /* Form Elements */
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--light-bg);
+            color: var(--text);
+            font-family: inherit;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--white);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        input::placeholder {
+            color: var(--text-muted);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            input {
+                background: #334155;
+            }
+
+            input:focus {
+                background: #475569;
+            }
+        }
+
+        /* Buttons */
+        .btn-predict {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-predict:active {
+            transform: translateY(0);
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border-left: 4px solid;
+            animation: slideDown 0.3s ease-out;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--warning);
+            color: var(--warning);
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .alert-success {
+                background: rgba(16, 185, 129, 0.15);
+            }
+
+            .alert-warning {
+                background: rgba(245, 158, 11, 0.15);
+            }
+
+            .alert-danger {
+                background: rgba(239, 68, 68, 0.15);
+            }
+        }
+
+        .alert h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .alert p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-title h1 {
+                font-size: 1.75rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            .header-icons {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animation for smooth transitions */
+        @media (prefers-color-scheme: dark) {
+            * {
+                color-scheme: dark;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <div class="header-content">
+        <div class="header-title">
+            🦟 Dengue Analytics
+        </div>
+        <div class="header-icons">
+            <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">🌙</button>
+            <div class="user-info">
+                <span>{{ user_email }}</span>
+                <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <div class="page-title">
+        <h1>Risk Prediction Dashboard</h1>
+        <p>AI-Powered Dengue Forecasting using Climate & Civic Data</p>
+    </div>
+
+    <!-- Alert -->
+    {% if prediction %}
+    <div class="alert alert-{{ alert_color }}">
+        <h3>{{ risk_level }}</h3>
+        <p>{{ prediction }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Visualizations Section -->
+    {% if gauge_chart %}
+    <div class="card">
+        <div class="section-title">Prediction Summary</div>
+        <div id="gaugeChart" style="width: 100%;"></div>
+    </div>
+    {% endif %}
+
+    <!-- Prediction Form -->
+    <div class="card">
+        <form action="/" method="POST">
+            
+            <div class="section-title">Ward & Civic Data</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="ward_id">Ward ID (1-198)</label>
+                    <input type="number" id="ward_id" name="ward_id" required placeholder="e.g., 45">
+                </div>
+                <div class="form-group">
+                    <label for="garbage">Garbage Complaints (Count)</label>
+                    <input type="number" id="garbage" name="garbage" required placeholder="e.g., 120">
+                </div>
+                <div class="form-group">
+                    <label for="waterlogging">Waterlogging Reports (Count)</label>
+                    <input type="number" id="waterlogging" name="waterlogging" required placeholder="e.g., 15">
+                </div>
+            </div>
+
+            <div class="section-title">📝 Complaint Analysis </div>
+            <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.9rem;">
+                Describe the nature and severity of complaints to let AI weigh severity scores. For example: "Massive flooding and stagnant water for 5 days"
+            </p>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="garbage_text">Garbage Issue Description</label>
+                    <textarea id="garbage_text" name="garbage_text" placeholder="Describe the garbage problem (e.g., piles blocking drains for 3 days)..." style="min-height: 80px; width: 100%; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border); font-family: inherit; resize: vertical;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="waterlogging_text">Waterlogging Issue Description</label>
+                    <textarea id="waterlogging_text" name="waterlogging_text" placeholder="Describe the waterlogging problem (e.g., severe flooding in residential area for 5 days)..." style="min-height: 80px; width: 100%; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--border); font-family: inherit; resize: vertical;"></textarea>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-predict">🔍 Predict Risk Level</button>
+        </form>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>🏥 Civic Health Monitoring System | Powered by Machine Learning & Flask</p>
+        <p style="margin-top: 0.5rem; font-size: 0.75rem; opacity: 0.7;">© 2026 Bengaluru Dengue Analytics</p>
+    </div>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    // Render Plotly charts
+    {% if gauge_chart %}
+    const gaugeData = {{ gauge_chart | safe }};
+    Plotly.newPlot('gaugeChart', gaugeData.data, gaugeData.layout, {responsive: true});
+    {% endif %}
+
+    // Dark Mode Toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const html = document.documentElement;
+
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') {
+        html.style.colorScheme = 'dark';
+        themeToggle.textContent = '☀️';
+    }
+
+    themeToggle.addEventListener('click', () => {
+        const currentTheme = html.style.colorScheme || 'light';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        html.style.colorScheme = newTheme;
+        localStorage.setItem('theme', newTheme);
+        themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        
+        // Redraw charts with new template
+        setTimeout(() => {
+            {% if gauge_chart %}
+            Plotly.newPlot('gaugeChart', gaugeData.data, gaugeData.layout, {responsive: true});
+            {% endif %}
+        }, 300);
+    });
+
+    // Apply saved theme on load
+    window.addEventListener('load', () => {
+        const theme = localStorage.getItem('theme') || 'light';
+        html.style.colorScheme = theme;
+        themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+    });
+</script>
+
+</body>
+</html>

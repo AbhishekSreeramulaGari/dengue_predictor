@@ -1,0 +1,4 @@
+Model,Baseline_RMSE,NLP_RMSE,RMSE_Improvement_%,Baseline_MAE,NLP_MAE,MAE_Improvement_%,Baseline_R2,NLP_R2,R2_Improvement_%
+GBM,3.95,3.824,3.18,3.069,2.936,4.32,0.9643,0.9665,6.25
+Random Forest,5.282,5.354,-1.36,4.148,4.013,3.25,0.9361,0.9343,-2.75
+Linear Regression,0.0,0.0,-31.98,0.0,0.0,-35.19,1.0,1.0,0.0

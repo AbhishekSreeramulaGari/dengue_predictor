@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Complaints - Authority Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+        .status-open { background-color: #fff3cd; color: #856404; }
+        .status-in_progress { background-color: #cce5ff; color: #004085; }
+        .status-fixed { background-color: #d1ecf1; color: #0c5460; }
+        .status-closed { background-color: #d4edda; color: #155724; }
+        .severity-high { color: #dc3545; font-weight: bold; }
+        .severity-medium { color: #ffc107; font-weight: bold; }
+        .severity-low { color: #28a745; }
+        .complaint-card {
+            transition: all 0.2s;
+            border-left: 4px solid;
+        }
+        .complaint-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+        .filter-section {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('home') }}">
+                <i class="fas fa-shield-alt"></i> Authority Dashboard
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('authority_dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('authority_complaints') }}">
+                            <i class="fas fa-list"></i> Manage Complaints
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('authority_analytics') }}">
+                            <i class="fas fa-chart-bar"></i> Analytics
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('authority_ai_assistant') }}">
+                            <i class="fas fa-robot"></i> AI Assistant
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <span class="badge bg-warning text-dark me-3">
+                            <i class="fas fa-crown"></i> Authority Access
+                        </span>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-shield"></i> {{ user.email }}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2><i class="fas fa-tasks"></i> Complaint Management</h2>
+                        <p class="text-muted">Review, prioritize, and manage citizen complaints</p>
+                    </div>
+                    <div class="text-end">
+                        <div class="h4 mb-0">{{ complaints|length }}</div>
+                        <small class="text-muted">Total Complaints</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-section">
+            <form method="GET" class="row g-3">
+                <div class="col-md-3">
+                    <label for="ward" class="form-label">Ward</label>
+                    <select class="form-select" id="ward" name="ward">
+                        <option value="">All Wards</option>
+                        {% for ward_id, ward_name in ward_options %}
+                        <option value="{{ ward_id }}" {% if filters.ward == ward_id %}selected{% endif %}>
+                            {{ ward_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">All Status</option>
+                        {% for status_value, status_label in status_options %}
+                        <option value="{{ status_value }}" {% if filters.status == status_value %}selected{% endif %}>
+                            {{ status_label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="category" class="form-label">Category</label>
+                    <select class="form-select" id="category" name="category">
+                        <option value="">All Categories</option>
+                        {% for cat_value, cat_label in category_options %}
+                        <option value="{{ cat_value }}" {% if filters.category == cat_value %}selected{% endif %}>
+                            {{ cat_label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                    <a href="{{ url_for('authority_complaints') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Complaints List -->
+        <div class="row">
+            {% for complaint in complaints %}
+            <div class="col-12 mb-3">
+                <div class="card complaint-card
+                    {% if complaint.status == 'open' %}border-warning{% elif complaint.status == 'in_progress' %}border-info{% elif complaint.status == 'fixed' %}border-success{% else %}border-secondary{% endif %}">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title mb-1">
+                                        {{ complaint.ward_name or complaint.ward_id }} - {{ complaint.category }}
+                                    </h5>
+                                    <span class="badge status-{{ complaint.status }} status-badge">
+                                        {{ complaint.status.replace('_', ' ').title() }}
+                                    </span>
+                                </div>
+                                <p class="card-text">{{ complaint.description }}</p>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <small class="text-muted">
+                                            <i class="fas fa-user"></i> {{ complaint.reporter_email }}
+                                        </small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar"></i> {{ complaint.created_at.strftime('%b %d, %Y %H:%M') }}
+                                        </small>
+                                    </div>
+                                </div>
+                                {% if complaint.severity_score %}
+                                <div class="mt-2">
+                                    <small class="severity-{{ 'high' if complaint.severity_score > 0.7 else 'medium' if complaint.severity_score > 0.4 else 'low' }}">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        Severity: {{ "%.1f"|format(complaint.severity_score * 100) }}%
+                                    </small>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4">
+                                <form method="POST" class="d-grid">
+                                    <input type="hidden" name="complaint_id" value="{{ complaint.id }}">
+                                    <div class="mb-3">
+                                        <label class="form-label">Update Status</label>
+                                        <select class="form-select form-select-sm" name="status" required>
+                                            <option value="open" {% if complaint.status == 'open' %}selected{% endif %}>Open</option>
+                                            <option value="in_progress" {% if complaint.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                            <option value="fixed" {% if complaint.status == 'fixed' %}selected{% endif %}>Fixed</option>
+                                            <option value="closed" {% if complaint.status == 'closed' %}selected{% endif %}>Closed</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Notes</label>
+                                        <textarea class="form-control form-control-sm" name="notes" rows="2"
+                                                  placeholder="Add update notes...">{{ complaint.notes or '' }}</textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-save"></i> Update
+                                    </button>
+                                </form>
+                                {% if complaint.assigned_to %}
+                                <div class="mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-user-check"></i> Assigned to: {{ complaint.assigned_to }}
+                                    </small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if not complaints %}
+        <div class="text-center mt-5">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <h4>No complaints found</h4>
+            <p class="text-muted">Try adjusting your filters or check back later for new complaints.</p>
+        </div>
+        {% endif %}
+
+        <!-- Bulk Actions (Future Enhancement) -->
+        {% if complaints %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-magic"></i> Bulk Actions
+                        </h6>
+                        <p class="card-text">Select multiple complaints for bulk status updates (coming soon)</p>
+                        <div class="text-muted small">
+                            <i class="fas fa-lightbulb"></i> Tip: Use filters to group similar complaints for efficient management
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-submit form on filter change for better UX
+        document.querySelectorAll('select').forEach(select => {
+            select.addEventListener('change', function() {
+                if (this.id !== 'query') { // Don't auto-submit for search
+                    this.closest('form').submit();
+                }
+            });
+        });
+
+        // Highlight severity scores
+        document.addEventListener('DOMContentLoaded', function() {
+            const severityElements = document.querySelectorAll('.severity-high, .severity-medium, .severity-low');
+            severityElements.forEach(el => {
+                if (el.textContent.includes('High')) {
+                    el.style.color = '#dc3545';
+                } else if (el.textContent.includes('Medium')) {
+                    el.style.color = '#ffc107';
+                } else {
+                    el.style.color = '#28a745';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

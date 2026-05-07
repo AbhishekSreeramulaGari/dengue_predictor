@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Dengue Risk Analytics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #0d6efd;
+            --primary-dark: #0b5ed7;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+            --dark-bg: #1a1a2e;
+            --dark-card: #16213e;
+            --dark-border: #0f3460;
+            --text-light: #333;
+            --text-dark: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .auth-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .auth-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .auth-header h1 {
+            color: #2c3e50;
+            font-size: 28px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .auth-header p {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #0d6efd;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+        }
+
+        input::placeholder {
+            color: #adb5bd;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #842029;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border-left: 4px solid #dc3545;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        .auth-footer a {
+            color: #0d6efd;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .auth-footer a:hover {
+            color: #0b5ed7;
+            text-decoration: underline;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            color: #bbb;
+            font-size: 12px;
+        }
+
+        /* Dark Mode */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            }
+
+            .auth-card {
+                background: var(--dark-card);
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            }
+
+            .auth-header h1 {
+                color: #e0e0e0;
+            }
+
+            .auth-header p {
+                color: #a0a0a0;
+            }
+
+            label {
+                color: #e0e0e0;
+            }
+
+            input {
+                background: #0f3460;
+                border-color: #233e5a;
+                color: #e0e0e0;
+            }
+
+            input:focus {
+                border-color: #667eea;
+                background: #1a2a4a;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+            }
+
+            input::placeholder {
+                color: #666;
+            }
+
+            .error-message {
+                background-color: rgba(220, 53, 69, 0.2);
+                color: #ff6b6b;
+                border-left-color: #ff6b6b;
+            }
+
+            .auth-footer {
+                color: #999;
+            }
+
+            .divider {
+                color: #444;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 30px 20px;
+            }
+
+            .auth-header h1 {
+                font-size: 24px;
+            }
+
+            .auth-icon {
+                font-size: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-icon">🦟</div>
+            <h1>Welcome Back</h1>
+            <p>Login to Dengue Risk Analytics</p>
+        </div>
+
+        {% if error %}
+        <div class="error-message">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="your@email.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+
+            <button type="submit" class="btn-login">Sign In</button>
+        </form>
+
+        <div class="divider">Don't have an account?</div>
+
+        <div class="auth-footer">
+            <p><a href="{{ url_for('register') }}">Create a new account</a></p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

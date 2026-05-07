@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Complaints{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card p-4">
+            <h3 class="mb-4">Complaint Tracker</h3>
+            {% if not complaints %}
+                <p>No complaints found yet. You can <a href="{{ url_for('report_complaint') }}">report a new complaint</a>.</p>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Ward</th>
+                                <th>Category</th>
+                                <th>Status</th>
+                                <th>Severity</th>
+                                <th>Reported</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for complaint in complaints %}
+                                <tr>
+                                    <td>{{ complaint.id }}</td>
+                                    <td>{{ complaint.ward_id }}</td>
+                                    <td>{{ complaint.category }}</td>
+                                    <td><span class="badge badge-{{ 'success' if complaint.status == 'fixed' else 'warning' if complaint.status == 'in_progress' else 'info' if complaint.status == 'open' else 'secondary' }}">{{ complaint.status.replace('_', ' ').title() }}</span></td>
+                                    <td>{{ '%.2f'|format(complaint.severity_score) }}</td>
+                                    <td>{{ complaint.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ complaint.notes or '—' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

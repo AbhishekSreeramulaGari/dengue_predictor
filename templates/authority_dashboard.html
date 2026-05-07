@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Authority Dashboard{% endblock %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card p-4 text-center">
+            <h5>Open</h5>
+            <p class="display-4">{{ summary.open }}</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-4 text-center">
+            <h5>In Progress</h5>
+            <p class="display-4">{{ summary.in_progress }}</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-4 text-center">
+            <h5>Fixed</h5>
+            <p class="display-4">{{ summary.fixed }}</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card p-4 text-center">
+            <h5>Closed</h5>
+            <p class="display-4">{{ summary.closed }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card p-4">
+            <h3 class="mb-4">Complaint Management</h3>
+            {% if not complaints %}
+                <p>No complaints have been submitted yet.</p>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Ward</th>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Reporter</th>
+                                <th>Status</th>
+                                <th>Severity</th>
+                                <th>Update</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for complaint in complaints %}
+                                <tr>
+                                    <td>{{ complaint.id }}</td>
+                                    <td>{{ complaint.ward_id }}</td>
+                                    <td>{{ complaint.category }}</td>
+                                    <td>{{ complaint.description[:90] }}{% if complaint.description|length > 90 %}...{% endif %}</td>
+                                    <td>{{ complaint.reporter_email }}</td>
+                                    <td>{{ complaint.status.replace('_', ' ').title() }}</td>
+                                    <td>{{ '%.2f'|format(complaint.severity_score) }}</td>
+                                    <td>
+                                        <form method="post" action="{{ url_for('authority_dashboard') }}">
+                                            <input type="hidden" name="complaint_id" value="{{ complaint.id }}" />
+                                            <div class="form-group mb-2">
+                                                <select name="status" class="form-control form-control-sm">
+                                                    <option value="open" {% if complaint.status == 'open' %}selected{% endif %}>Open</option>
+                                                    <option value="in_progress" {% if complaint.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                                                    <option value="fixed" {% if complaint.status == 'fixed' %}selected{% endif %}>Fixed</option>
+                                                    <option value="closed" {% if complaint.status == 'closed' %}selected{% endif %}>Closed</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group mb-2">
+                                                <textarea class="form-control form-control-sm" name="notes" rows="2" placeholder="Add notes">{{ complaint.notes or '' }}</textarea>
+                                            </div>
+                                            <button class="btn btn-sm btn-primary btn-block" type="submit">Update</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

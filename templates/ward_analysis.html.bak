@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ward-Level Analysis - Dengue Prediction System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f5f7fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        }
+        .border-left-primary {
+            border-left: 4px solid #007bff !important;
+        }
+        .border-left-success {
+            border-left: 4px solid #28a745 !important;
+        }
+        .border-left-info {
+            border-left: 4px solid #17a2b8 !important;
+        }
+        .border-left-warning {
+            border-left: 4px solid #ffc107 !important;
+        }
+        .opacity-50 {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-virus"></i> Dengue Prediction System
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/ward-analysis">Ward Analysis</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="display-4 mb-2">Ward-Level Analysis Dashboard</h1>
+            <p class="text-muted">Comprehensive performance metrics across all Bengaluru wards</p>
+        </div>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-light border-left-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-muted mb-1">Total Wards Analyzed</h6>
+                            <h2 class="font-weight-bold text-primary">{{ summary.total_wards }}</h2>
+                        </div>
+                        <i class="fas fa-map-marker-alt fa-3x text-primary opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light border-left-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-muted mb-1">Mean Accuracy</h6>
+                            <h2 class="font-weight-bold text-success">{{ summary.mean_accuracy }}%</h2>
+                        </div>
+                        <i class="fas fa-chart-pie fa-3x text-success opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light border-left-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-muted mb-1">Accuracy Range</h6>
+                            <h3 class="font-weight-bold text-info">{{ summary.min_accuracy }}% - {{ summary.max_accuracy }}%</h3>
+                        </div>
+                        <i class="fas fa-arrows-alt-v fa-3x text-info opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light border-left-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-muted mb-1">Std Deviation</h6>
+                            <h2 class="font-weight-bold text-warning">{{ summary.std_accuracy }}%</h2>
+                        </div>
+                        <i class="fas fa-chart-bar fa-3x text-warning opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Tier Distribution -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-layer-group"></i> Performance Tier Distribution</h5>
+                </div>
+                <div class="card-body">
+                    {% for tier, count in tier_distribution.items() %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="font-weight-bold">{{ tier }}</span>
+                            <span class="badge badge-primary">{{ count }} ward{{ 's' if count != 1 else '' }}</span>
+                        </div>
+                        <div class="progress" style="height: 25px;">
+                            {% if 'Excellent' in tier %}
+                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ (count / summary.total_wards * 100)|int }}%;" aria-valuenow="{{ count }}" aria-valuemin="0" aria-valuemax="{{ summary.total_wards }}"></div>
+                            {% elif 'Good' in tier %}
+                                <div class="progress-bar bg-info" role="progressbar" style="width: {{ (count / summary.total_wards * 100)|int }}%;" aria-valuenow="{{ count }}" aria-valuemin="0" aria-valuemax="{{ summary.total_wards }}"></div>
+                            {% elif 'Fair' in tier %}
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ (count / summary.total_wards * 100)|int }}%;" aria-valuenow="{{ count }}" aria-valuemin="0" aria-valuemax="{{ summary.total_wards }}"></div>
+                            {% else %}
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: {{ (count / summary.total_wards * 100)|int }}%;" aria-valuenow="{{ count }}" aria-valuemin="0" aria-valuemax="{{ summary.total_wards }}"></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Insights -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Key Insights & Recommendations</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <i class="fas fa-check-circle text-success mr-2"></i>
+                            <strong>Overall Performance:</strong> Mean accuracy of <strong>{{ summary.mean_accuracy }}%</strong> across all wards
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-info-circle text-info mr-2"></i>
+                            <strong>Variability:</strong> Standard deviation of <strong>{{ summary.std_accuracy }}%</strong> indicates {{ 'high' if summary.std_accuracy > 8 else 'moderate' }} variance across wards
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-rocket text-warning mr-2"></i>
+                            <strong>Best Practice:</strong> Use ensemble methods combining multiple models
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-target text-danger mr-2"></i>
+                            <strong>Focus Areas:</strong> Concentrate on wards with accuracy below 70%
+                        </li>
+                        <li>
+                            <i class="fas fa-chart-line text-primary mr-2"></i>
+                            <strong>Monitoring:</strong> Set up alerts for wards with accuracy drops
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Performing Wards -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-star"></i> Top 5 Performing Wards</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Ward ID</th>
+                                <th>Accuracy</th>
+                                <th>MAE</th>
+                                <th>RMSE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ward, metrics in top_wards %}
+                            <tr>
+                                <td><strong>Ward {{ ward }}</strong></td>
+                                <td><span class="badge badge-success">{{ metrics.accuracy }}%</span></td>
+                                <td>{{ "%.4f"|format(metrics.mae) }}</td>
+                                <td>{{ "%.4f"|format(metrics.rmse) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Performing Wards -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Bottom 5 Performing Wards</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>Ward ID</th>
+                                <th>Accuracy</th>
+                                <th>MAE</th>
+                                <th>RMSE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ward, metrics in bottom_wards %}
+                            <tr>
+                                <td><strong>Ward {{ ward }}</strong></td>
+                                <td><span class="badge badge-danger">{{ metrics.accuracy }}%</span></td>
+                                <td>{{ "%.4f"|format(metrics.mae) }}</td>
+                                <td>{{ "%.4f"|format(metrics.rmse) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Wards Metrics Table -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-table"></i> All Ward Metrics</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0" id="wardsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ward ID</th>
+                                <th>Accuracy</th>
+                                <th>Performance Tier</th>
+                                <th>MAE</th>
+                                <th>RMSE</th>
+                                <th>Samples</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ward, metrics in ward_metrics.items() %}
+                            <tr>
+                                <td><strong>Ward {{ ward }}</strong></td>
+                                <td>
+                                    <span class="badge 
+                                        {% if metrics.accuracy >= 90 %}badge-success{% elif metrics.accuracy >= 80 %}badge-info{% elif metrics.accuracy >= 70 %}badge-warning{% else %}badge-danger{% endif %}">
+                                        {{ metrics.accuracy }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if metrics.accuracy >= 90 %}
+                                        <span class="badge badge-success">Excellent</span>
+                                    {% elif metrics.accuracy >= 80 %}
+                                        <span class="badge badge-info">Good</span>
+                                    {% elif metrics.accuracy >= 70 %}
+                                        <span class="badge badge-warning">Fair</span>
+                                    {% else %}
+                                        <span class="badge badge-danger">Poor</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ "%.4f"|format(metrics.mae) }}</td>
+                                <td>{{ "%.4f"|format(metrics.rmse) }}</td>
+                                <td>{{ metrics.samples }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="loadWardDetails({{ ward }})">
+                                        <i class="fas fa-eye"></i> Details
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ward Details Modal -->
+    <div class="modal fade" id="wardDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="wardDetailsTitle">Ward Details</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body" id="wardDetailsBody">
+                    <p class="text-muted">Loading...</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function loadWardDetails(wardId) {
+    fetch(`/api/wards/${wardId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('wardDetailsBody').innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+            } else {
+                const html = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Ward ID:</strong> ${data.ward_id}</p>
+                            <p><strong>Performance Tier:</strong> <span class="badge badge-${data.performance_tier.toLowerCase() === 'excellent' ? 'success' : data.performance_tier.toLowerCase() === 'good' ? 'info' : data.performance_tier.toLowerCase() === 'fair' ? 'warning' : 'danger'}">${data.performance_tier}</span></p>
+                            <p><strong>Accuracy:</strong> ${data.accuracy}%</p>
+                            <p><strong>MAE:</strong> ${data.mae}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>RMSE:</strong> ${data.rmse}</p>
+                            <p><strong>R² Score:</strong> ${data.r2}</p>
+                            <p><strong>Sample Size:</strong> ${data.samples}</p>
+                            <p><strong>Avg Predicted Cases:</strong> ${data.avg_predicted}</p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-12">
+                            <h6>Performance Analysis</h6>
+                            <div class="progress mb-2" style="height: 25px;">
+                                <div class="progress-bar bg-${data.accuracy >= 90 ? 'success' : data.accuracy >= 80 ? 'info' : data.accuracy >= 70 ? 'warning' : 'danger'}" role="progressbar" style="width: ${data.accuracy}%;" aria-valuenow="${data.accuracy}" aria-valuemin="0" aria-valuemax="100">
+                                    ${data.accuracy}% Accuracy
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('wardDetailsBody').innerHTML = html;
+            }
+            document.getElementById('wardDetailsTitle').innerHTML = `Ward ${wardId} - Detailed Analysis`;
+            $('#wardDetailsModal').modal('show');
+        })
+        .catch(error => {
+            document.getElementById('wardDetailsBody').innerHTML = `<div class="alert alert-danger">Error loading ward details</div>`;
+            console.error('Error:', error);
+        });
+}
+</script>
+
+<style>
+    .border-left-primary {
+        border-left: 4px solid #007bff !important;
+    }
+    .border-left-success {
+        border-left: 4px solid #28a745 !important;
+    }
+    .border-left-info {
+        border-left: 4px solid #17a2b8 !important;
+    }
+    .border-left-warning {
+        border-left: 4px solid #ffc107 !important;
+    }
+</style>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white mt-5 py-4">
+        <div class="container-fluid">
+            <p class="text-center text-muted mb-0">© 2026 Dengue Prediction System. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

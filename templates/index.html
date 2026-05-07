@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Home - Dengue Prediction System{% endblock %}
+{% block content %}
+<div class="hero mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="display-4">Predict dengue risk and manage complaints.</h1>
+            <p class="lead">Use machine learning, NLP complaint severity, and ward-level insights to keep communities safe.</p>
+            <div class="mt-4">
+                {% if user and user.role == 'authority' %}
+                    <a href="{{ url_for('authority_dashboard') }}" class="btn btn-primary btn-lg mr-2">Authority Dashboard</a>
+                    <a href="{{ url_for('ward_analysis_route') }}" class="btn btn-outline-primary btn-lg">Ward Analysis</a>
+                {% else %}
+                    <a href="{{ url_for('predict') }}" class="btn btn-primary btn-lg mr-2">Run Prediction</a>
+                    <a href="{{ url_for('report_complaint') }}" class="btn btn-outline-primary btn-lg">Report a Complaint</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-4 text-center">
+            <i class="fas fa-thermometer-three-quarters fa-6x text-primary"></i>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card p-4 h-100">
+            <h5>Public Information</h5>
+            <p>Learn how dengue spreads, what rainfall and complaints mean for risk, and how local authorities respond.</p>
+            <a href="{{ url_for('ward_analysis_route') }}" class="btn btn-sm btn-outline-secondary">Ward Risk Overview</a>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card p-4 h-100">
+            <h5>Complaint Reporting</h5>
+            <p>Report garbage, waterlogging or dengue-related issues in your ward. No login required.</p>
+            <a href="{{ url_for('report_complaint') }}" class="btn btn-sm btn-outline-secondary">Report Now</a>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card p-4 h-100">
+            <h5>Authority Access</h5>
+            <p>Authorities can view all complaints, update status, and close resolved issues.</p>
+            <a href="{{ url_for('login') }}" class="btn btn-sm btn-outline-secondary">Authority Login</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card p-4">
+            <h4>How this system helps</h4>
+            <ul>
+                <li>Uses complaint severity and historical records to predict dengue cases.</li>
+                <li>Supports ward-level visibility for civic teams.</li>
+                <li>Keeps public and authority workflows separate for safety and accountability.</li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-4">
+            <h4>Quick Start</h4>
+            <p>{% if user and user.role == 'authority' %}Use your authority account to close complaints and review ward analytics.{% elif user %}Report complaints, check their status, and run predictions for your ward.{% else %}Register or login to access complaint tracking, or submit a public report without signing in.{% endif %}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

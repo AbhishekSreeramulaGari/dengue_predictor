@@ -1,0 +1,98 @@
+{
+  "all_features": [
+    "Rainfall_mm",
+    "Avg_Temp_C",
+    "Garbage_Complaints",
+    "Waterlogging_Complaints",
+    "Month",
+    "Quarter",
+    "DayOfYear",
+    "Month_sin",
+    "Month_cos",
+    "Is_Monsoon",
+    "Is_Summer",
+    "Is_Winter",
+    "Rainfall_Lag1",
+    "Rainfall_Lag2",
+    "Rainfall_Lag3",
+    "Temp_Lag1",
+    "Temp_Lag2",
+    "Cases_Lag1",
+    "Cases_Lag2",
+    "Cases_Lag3",
+    "Garbage_Lag1",
+    "Waterlog_Lag1",
+    "Rainfall_roll3_mean",
+    "Rainfall_roll7_mean",
+    "Cases_roll3_mean",
+    "Cases_roll7_mean",
+    "Temp_roll3_mean",
+    "Rainfall_roll3_std",
+    "Cases_roll3_std",
+    "Rainfall_roll7_max",
+    "Rainfall_roll7_min",
+    "Ward_Garbage_mean",
+    "Ward_Waterlog_mean",
+    "Ward_Cases_mean",
+    "Ward_Rainfall_mean"
+  ],
+  "feature_categories": {
+    "raw": [
+      "Rainfall_mm",
+      "Avg_Temp_C",
+      "Garbage_Complaints",
+      "Waterlogging_Complaints"
+    ],
+    "temporal": [
+      "Month",
+      "Year",
+      "Quarter",
+      "DayOfYear",
+      "Month_sin",
+      "Month_cos",
+      "Is_Monsoon",
+      "Is_Summer",
+      "Is_Winter"
+    ],
+    "lag": [
+      "Rainfall_Lag1",
+      "Rainfall_Lag2",
+      "Rainfall_Lag3",
+      "Temp_Lag1",
+      "Temp_Lag2",
+      "Cases_Lag1",
+      "Cases_Lag2",
+      "Cases_Lag3",
+      "Garbage_Lag1",
+      "Waterlog_Lag1"
+    ],
+    "rolling": [
+      "Rainfall_roll3_mean",
+      "Rainfall_roll7_mean",
+      "Cases_roll3_mean",
+      "Cases_roll7_mean",
+      "Temp_roll3_mean",
+      "Rainfall_roll3_std",
+      "Cases_roll3_std",
+      "Rainfall_roll7_max",
+      "Rainfall_roll7_min"
+    ],
+    "aggregation": [
+      "Ward_Garbage_mean",
+      "Ward_Waterlog_mean",
+      "Ward_Cases_mean",
+      "Ward_Rainfall_mean"
+    ]
+  },
+  "scaling_required_models": [
+    "Linear Regression",
+    "MLP"
+  ],
+  "scaling_optional_models": [
+    "GBM",
+    "XGBoost"
+  ],
+  "scaling_not_applicable_models": [
+    "Random Forest"
+  ]
+}

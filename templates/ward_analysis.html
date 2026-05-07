@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}Ward Analysis{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3>Ward Analysis</h3>
+                    <p class="mb-0">Detailed ward-level dengue case averages and risk insights.</p>
+                </div>
+                {% if user and user.role == 'authority' %}
+                    <a href="{{ url_for('authority_dashboard') }}" class="btn btn-outline-primary">Authority Dashboard</a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if overall_stats.total_wards %}
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card p-3 text-center">
+                        <h6>Total Wards</h6>
+                        <p class="display-4 mb-0">{{ overall_stats.total_wards }}</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card p-3 text-center">
+                        <h6>Average Cases</h6>
+                        <p class="display-4 mb-0">{{ overall_stats.avg_cases | round(1) }}</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card p-3 text-center">
+                        <h6>Highest Avg</h6>
+                        <p class="display-4 mb-0">{{ overall_stats.highest_avg | round(1) }}</p>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card p-3 text-center">
+                        <h6>Lowest Avg</h6>
+                        <p class="display-4 mb-0">{{ overall_stats.lowest_avg | round(1) }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-4 mb-4">
+                <h5 class="mb-3">Top 10 Wards by Average Cases</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Ward</th>
+                                <th>Average Cases</th>
+                                <th>Total Cases</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ward in ward_top %}
+                                <tr>
+                                    <td>{{ ward.Ward }}</td>
+                                    <td>{{ ward.Average_Cases | round(1) }}</td>
+                                    <td>{{ ward.Total_Cases }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card p-4 mb-4">
+                <h5 class="mb-3">Lowest 10 Wards by Average Cases</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Ward</th>
+                                <th>Average Cases</th>
+                                <th>Total Cases</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ward in ward_bottom %}
+                                <tr>
+                                    <td>{{ ward.Ward }}</td>
+                                    <td>{{ ward.Average_Cases | round(1) }}</td>
+                                    <td>{{ ward.Total_Cases }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <div class="card p-4">
+                <p class="mb-0">Ward analytics data is not available right now. Please check back later.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{
+  "models": [
+    "Linear Regression",
+    "GBM",
+    "Random Forest",
+    "XGBoost",
+    "MLP"
+  ],
+  "scaled_models": [
+    "Linear Regression",
+    "GBM",
+    "MLP"
+  ],
+  "unscaled_models": [
+    "Random Forest",
+    "XGBoost"
+  ],
+  "features": [
+    "Rainfall_mm",
+    "Avg_Temp_C",
+    "Garbage_Complaints",
+    "Waterlogging_Complaints",
+    "Rainfall_Lag1",
+    "Rainfall_Lag2",
+    "Temp_Lag1",
+    "Cases_Lag1",
+    "Rainfall_roll3_mean",
+    "Cases_roll3_mean",
+    "Is_Monsoon",
+    "Garbage_Complaints_ward_mean",
+    "Waterlogging_Complaints_ward_mean"
+  ],
+  "feature_count": 13,
+  "training_samples": 5385,
+  "test_samples": 1347
+}

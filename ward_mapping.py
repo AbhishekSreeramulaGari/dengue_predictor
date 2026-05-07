@@ -219,5 +219,4 @@ def get_ward_options():
 
 def get_wards_list():
     """Get list of all wards with names"""
-    return [{"id": wid, "name": name} for wid, name in WARD_NAMES.items()]</content>
-<parameter name="filePath">/Users/abhiroyal/Downloads/bang-main/ward_mapping.py
+    return [{"id": wid, "name": name} for wid, name in WARD_NAMES.items()]

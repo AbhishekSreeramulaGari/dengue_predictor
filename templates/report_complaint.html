@@ -1,53 +1,276 @@
-{% extends 'base.html' %}
-{% block title %}Report Complaint{% endblock %}
-{% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card p-4">
-            <h3 class="mb-4">Report a Complaint</h3>
-            {% if success %}
-                <div class="alert alert-success">{{ success }}</div>
-            {% endif %}
-            {% if user and user.role == 'authority' %}
-                <div class="alert alert-warning">
-                    You are logged in as an authority user. Use the <a href="{{ url_for('authority_dashboard') }}">Authority Dashboard</a> to manage and close complaints. This form is intended for public complaint submission.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Complaint - Dengue Prevention</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .complaint-card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+        .category-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+        }
+        .garbage { background-color: #28a745; color: white; }
+        .waterlogging { background-color: #007bff; color: white; }
+        .sanitation { background-color: #ffc107; color: black; }
+        .other { background-color: #6c757d; color: white; }
+        .success-animation {
+            animation: checkmark 0.8s ease-in-out;
+        }
+        @keyframes checkmark {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('home') }}">
+                <i class="fas fa-shield-alt"></i> Dengue Prediction System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('public_dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('predict') }}">
+                            <i class="fas fa-chart-line"></i> Predict Risk
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('report_complaint') }}">
+                            <i class="fas fa-exclamation-triangle"></i> Report Issue
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('my_complaints') }}">
+                            <i class="fas fa-list"></i> My Complaints
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('public_ai_assistant') }}">
+                            <i class="fas fa-robot"></i> AI Assistant
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user"></i> {{ user.email if user else 'Guest' }}
+                        </a>
+                        <ul class="dropdown-menu">
+                            {% if user %}
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a></li>
+                            {% else %}
+                            <li><a class="dropdown-item" href="{{ url_for('login') }}">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('register') }}">
+                                <i class="fas fa-user-plus"></i> Register
+                            </a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Success Message -->
+                {% if success %}
+                <div class="alert alert-success alert-dismissible fade show success-animation" role="alert">
+                    <i class="fas fa-check-circle fa-lg me-2"></i>
+                    <strong>Complaint Submitted Successfully!</strong>
+                    <br>{{ success }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
-            {% endif %}
-            <form method="post" action="{{ url_for('report_complaint') }}">
-                <div class="form-row">
-                    <div class="form-group col-md-6">
-                        <label for="ward_id">Ward ID</label>
-                        <input type="text" class="form-control" id="ward_id" name="ward_id" placeholder="Enter ward" required />
-                    </div>
-                    <div class="form-group col-md-6">
-                        <label for="category">Complaint Category</label>
-                        <select class="form-control" id="category" name="category">
-                            <option>Garbage</option>
-                            <option>Waterlogging</option>
-                            <option>Sanitation</option>
-                            <option>Other</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="description">Detailed Description</label>
-                    <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
-                </div>
-                {% if not session.get('user') %}
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label for="name">Your Name</label>
-                            <input type="text" class="form-control" id="name" name="name" />
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="email">Your Email</label>
-                            <input type="email" class="form-control" id="email" name="email" required />
-                        </div>
-                    </div>
                 {% endif %}
-                <button type="submit" class="btn btn-primary">Submit Complaint</button>
-            </form>
+
+                <!-- Authority Warning -->
+                {% if user and user.is_authority() %}
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    You are logged in as an authority user. Use the
+                    <a href="{{ url_for('authority_dashboard') }}" class="alert-link">Authority Dashboard</a>
+                    to manage and close complaints. This form is intended for public complaint submission.
+                </div>
+                {% endif %}
+
+                <!-- Complaint Form -->
+                <div class="card complaint-card">
+                    <div class="card-header bg-danger text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-exclamation-triangle"></i> Report Dengue Risk Issue
+                        </h4>
+                        <small>Help us identify and address mosquito breeding sites in your area</small>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="ward_id" class="form-label">
+                                        <i class="fas fa-map-marker-alt"></i> Ward Location
+                                    </label>
+                                    <select class="form-select" id="ward_id" name="ward_id" required>
+                                        <option value="">Select ward...</option>
+                                        {% for ward_id, ward_name in ward_options %}
+                                        <option value="{{ ward_id }}">{{ ward_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="category" class="form-label">
+                                        <i class="fas fa-tags"></i> Issue Category
+                                    </label>
+                                    <select class="form-select" id="category" name="category" required>
+                                        <option value="Garbage">Garbage & Waste</option>
+                                        <option value="Waterlogging">Waterlogging & Drainage</option>
+                                        <option value="Sanitation">Sanitation Issues</option>
+                                        <option value="Mosquito Breeding">Mosquito Breeding Sites</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label">
+                                    <i class="fas fa-comment"></i> Detailed Description
+                                </label>
+                                <textarea class="form-control" id="description" name="description" rows="4"
+                                          placeholder="Please provide specific details about the issue:
+- Exact location (street, landmark, building)
+- Description of the problem
+- How long has this been an issue?
+- Any photos or additional context that would help"
+                                          required></textarea>
+                                <small class="form-text text-muted">
+                                    The more specific your description, the faster we can address the issue.
+                                </small>
+                            </div>
+
+                            {% if not user %}
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="name" class="form-label">
+                                        <i class="fas fa-user"></i> Your Name (Optional)
+                                    </label>
+                                    <input type="text" class="form-control" id="name" name="name"
+                                           placeholder="Your full name">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">
+                                        <i class="fas fa-envelope"></i> Email Address
+                                    </label>
+                                    <input type="email" class="form-control" id="email" name="email"
+                                           placeholder="your.email@example.com" required>
+                                    <small class="form-text text-muted">
+                                        We'll use this to send updates about your complaint.
+                                    </small>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-danger btn-lg">
+                                    <i class="fas fa-paper-plane"></i> Submit Complaint
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Category Guide -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle"></i> What to Report
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="text-center">
+                                    <div class="category-icon garbage">
+                                        <i class="fas fa-trash fa-lg"></i>
+                                    </div>
+                                    <h6>Garbage & Waste</h6>
+                                    <small class="text-muted">Overflowing bins, uncollected waste, dumping sites</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="text-center">
+                                    <div class="category-icon waterlogging">
+                                        <i class="fas fa-tint fa-lg"></i>
+                                    </div>
+                                    <h6>Waterlogging</h6>
+                                    <small class="text-muted">Standing water, blocked drains, flooding</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="text-center">
+                                    <div class="category-icon sanitation">
+                                        <i class="fas fa-broom fa-lg"></i>
+                                    </div>
+                                    <h6>Sanitation</h6>
+                                    <small class="text-muted">Poor hygiene, sewage issues, public health concerns</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="text-center">
+                                    <div class="category-icon other">
+                                        <i class="fas fa-bug fa-lg"></i>
+                                    </div>
+                                    <h6>Mosquito Breeding</h6>
+                                    <small class="text-muted">Construction sites, abandoned containers, stagnant water</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Response Time Info -->
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-clock me-2"></i>
+                    <strong>Response Time:</strong> We aim to acknowledge all complaints within 24 hours and provide updates within 3-5 working days.
+                    High-priority issues (mosquito breeding sites) receive immediate attention.
+                </div>
+            </div>
         </div>
     </div>
-</div>
-{% endblock %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-scroll to success message
+        document.addEventListener('DOMContentLoaded', function() {
+            const successAlert = document.querySelector('.alert-success');
+            if (successAlert) {
+                successAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -9,7 +9,7 @@
             <div class="mt-4">
                 {% if user and user.role == 'authority' %}
                     <a href="{{ url_for('authority_dashboard') }}" class="btn btn-primary btn-lg mr-2">Authority Dashboard</a>
-                    <a href="{{ url_for('ward_analysis_route') }}" class="btn btn-outline-primary btn-lg">Ward Analysis</a>
+                    <a href="{{ url_for('authority_analytics') }}" class="btn btn-outline-primary btn-lg">Ward Analysis</a>
                 {% else %}
                     <a href="{{ url_for('predict') }}" class="btn btn-primary btn-lg mr-2">Run Prediction</a>
                     <a href="{{ url_for('report_complaint') }}" class="btn btn-outline-primary btn-lg">Report a Complaint</a>
@@ -27,7 +27,7 @@
         <div class="card p-4 h-100">
             <h5>Public Information</h5>
             <p>Learn how dengue spreads, what rainfall and complaints mean for risk, and how local authorities respond.</p>
-            <a href="{{ url_for('ward_analysis_route') }}" class="btn btn-sm btn-outline-secondary">Ward Risk Overview</a>
+            <a href="{{ url_for('authority_analytics') }}" class="btn btn-sm btn-outline-secondary">Ward Risk Overview</a>
         </div>
     </div>
     <div class="col-md-4 mb-4">

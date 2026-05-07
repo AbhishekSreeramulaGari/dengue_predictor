@@ -342,5 +342,4 @@ class ImprovedDenguePredictor:
                 'temperature': round(features_df['Avg_Temp_C'].iloc[0], 1),
                 'is_monsoon': bool(features_df['Is_Monsoon'].iloc[0])
             }
-        }</content>
-<parameter name="filePath">/Users/abhiroyal/Downloads/bang-main/improved_predictor.py
+        }

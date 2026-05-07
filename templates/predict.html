@@ -1,57 +1,288 @@
-{% extends 'base.html' %}
-{% block title %}Predict Dengue Risk{% endblock %}
-{% block content %}
-<div class="row">
-    <div class="col-md-7 mb-4">
-        <div class="card p-4">
-            <h3 class="mb-4">Dengue Risk Prediction</h3>
-            <form method="post" action="{{ url_for('predict') }}">
-                <div class="form-group">
-                    <label for="ward_id">Ward ID</label>
-                    <input type="text" class="form-control" id="ward_id" name="ward_id" placeholder="Enter ward number" required />
-                </div>
-                <div class="form-row">
-                    <div class="form-group col-md-6">
-                        <label for="garbage">Garbage Complaints</label>
-                        <input type="number" class="form-control" id="garbage" name="garbage" value="0" min="0" step="1" required />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dengue Risk Prediction</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .prediction-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+        .risk-low { background-color: #28a745; }
+        .risk-medium { background-color: #ffc107; color: #000; }
+        .risk-high { background-color: #fd7e14; }
+        .risk-very-high { background-color: #dc3545; }
+        .form-card {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+        .prediction-result {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('home') }}">
+                <i class="fas fa-shield-alt"></i> Dengue Prediction System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('public_dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('predict') }}">
+                            <i class="fas fa-chart-line"></i> Predict Risk
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('report_complaint') }}">
+                            <i class="fas fa-exclamation-triangle"></i> Report Issue
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('my_complaints') }}">
+                            <i class="fas fa-list"></i> My Complaints
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('public_ai_assistant') }}">
+                            <i class="fas fa-robot"></i> AI Assistant
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user"></i> {{ user.email }}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Prediction Form -->
+            <div class="col-lg-6 mb-4">
+                <div class="card form-card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-search"></i> Dengue Risk Assessment
+                        </h4>
+                        <small>Get personalized risk prediction for your ward</small>
                     </div>
-                    <div class="form-group col-md-6">
-                        <label for="waterlogging">Waterlogging Complaints</label>
-                        <input type="number" class="form-control" id="waterlogging" name="waterlogging" value="0" min="0" step="1" required />
+                    <div class="card-body">
+                        <form method="POST">
+                            <div class="mb-3">
+                                <label for="ward_id" class="form-label">
+                                    <i class="fas fa-map-marker-alt"></i> Select Ward
+                                </label>
+                                <select class="form-select" id="ward_id" name="ward_id" required>
+                                    <option value="">Choose your ward...</option>
+                                    {% for ward_id, ward_name in ward_options %}
+                                    <option value="{{ ward_id }}">{{ ward_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="garbage" class="form-label">
+                                        <i class="fas fa-trash"></i> Garbage Complaints
+                                    </label>
+                                    <input type="number" class="form-control" id="garbage" name="garbage"
+                                           value="0" min="0" max="100" required>
+                                    <small class="form-text text-muted">Number of recent complaints</small>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="waterlogging" class="form-label">
+                                        <i class="fas fa-tint"></i> Waterlogging Complaints
+                                    </label>
+                                    <input type="number" class="form-control" id="waterlogging" name="waterlogging"
+                                           value="0" min="0" max="100" required>
+                                    <small class="form-text text-muted">Number of recent complaints</small>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="garbage_text" class="form-label">
+                                    <i class="fas fa-comment"></i> Garbage Issue Details (Optional)
+                                </label>
+                                <textarea class="form-control" id="garbage_text" name="garbage_text" rows="2"
+                                          placeholder="Describe garbage accumulation, overflow, or collection issues..."></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="waterlogging_text" class="form-label">
+                                    <i class="fas fa-comment"></i> Waterlogging Details (Optional)
+                                </label>
+                                <textarea class="form-control" id="waterlogging_text" name="waterlogging_text" rows="2"
+                                          placeholder="Describe standing water, drainage problems, or flooding issues..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-calculator"></i> Calculate Risk
+                            </button>
+                        </form>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="garbage_text">Garbage Complaint Description</label>
-                    <textarea class="form-control" id="garbage_text" name="garbage_text" rows="3" placeholder="Optional details about garbage issues"></textarea>
+
+                <!-- Quick Tips -->
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-lightbulb text-warning"></i> Tips for Accurate Prediction
+                        </h6>
+                        <ul class="list-unstyled small mb-0">
+                            <li><i class="fas fa-check text-success"></i> Include recent complaint counts (last 7-30 days)</li>
+                            <li><i class="fas fa-check text-success"></i> Add specific details about issues for better accuracy</li>
+                            <li><i class="fas fa-check text-success"></i> Check multiple wards if you travel between areas</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="waterlogging_text">Waterlogging Complaint Description</label>
-                    <textarea class="form-control" id="waterlogging_text" name="waterlogging_text" rows="3" placeholder="Optional details about waterlogging issues"></textarea>
+            </div>
+
+            <!-- Prediction Results -->
+            <div class="col-lg-6">
+                {% if prediction %}
+                <div class="prediction-result">
+                    <!-- Risk Level Card -->
+                    <div class="card prediction-card mb-4">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fas fa-thermometer-half fa-3x"></i>
+                            </div>
+                            <h3 class="card-title mb-3">{{ prediction.risk_level }}</h3>
+                            <div class="h2 mb-3">{{ prediction.predicted_cases }} cases</div>
+                            <p class="mb-0">{{ prediction.description }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Analysis -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-bar"></i> Risk Analysis
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span>Risk Score</span>
+                                    <span class="badge bg-{{ prediction.risk_color }}">{{ prediction.risk_percentage }}%</span>
+                                </div>
+                                <div class="progress">
+                                    <div class="progress-bar bg-{{ prediction.risk_color }}"
+                                         style="width: {{ prediction.risk_percentage }}%">
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if prediction.factors %}
+                            <h6>Contributing Factors:</h6>
+                            <ul class="list-group list-group-flush">
+                                {% for factor in prediction.factors %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    {{ factor.name }}
+                                    <span class="badge bg-secondary">{{ factor.weight }}%</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-shield-alt"></i> Prevention Recommendations
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if prediction.recommendations %}
+                            <ul class="list-group list-group-flush">
+                                {% for rec in prediction.recommendations %}
+                                <li class="list-group-item">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    {{ rec }}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            <div class="text-center text-muted">
+                                <i class="fas fa-info-circle fa-2x mb-2"></i>
+                                <p>General prevention measures:</p>
+                                <ul class="text-start">
+                                    <li>Eliminate standing water around your home</li>
+                                    <li>Use mosquito repellents and nets</li>
+                                    <li>Wear long-sleeved clothing</li>
+                                    <li>Report mosquito breeding sites</li>
+                                </ul>
+                            </div>
+                            {% endif %}
+
+                            <div class="text-center mt-3">
+                                <a href="{{ url_for('report_complaint') }}" class="btn btn-warning me-2">
+                                    <i class="fas fa-exclamation-triangle"></i> Report Issue
+                                </a>
+                                <a href="{{ url_for('public_ai_assistant') }}" class="btn btn-info">
+                                    <i class="fas fa-robot"></i> Ask AI Assistant
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <button type="submit" class="btn btn-primary">Run Prediction</button>
-            </form>
+                {% else %}
+                <!-- Placeholder for no prediction -->
+                <div class="card text-center" style="height: 400px; display: flex; align-items: center;">
+                    <div class="card-body">
+                        <i class="fas fa-chart-line fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">Risk Assessment</h4>
+                        <p class="text-muted">Fill out the form to get your personalized dengue risk prediction</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 
-    <div class="col-md-5 mb-4">
-        <div class="card p-4 h-100">
-            <h4>Prediction Result</h4>
-            {% if prediction %}
-                <div class="alert alert-{{ alert_color or 'info' }} mt-3">
-                    <strong>{{ prediction }}</strong><br />{{ risk_level }}
-                </div>
-                {% if gauge_chart %}
-                    <div id="gauge-chart"></div>
-                    <script src="https://cdn.plot.ly/plotly-2.29.1.min.js"></script>
-                    <script>
-                        var gaugeFigure = {{ gauge_chart | safe }};
-                        Plotly.newPlot('gauge-chart', gaugeFigure.data, gaugeFigure.layout || {});
-                    </script>
-                {% endif %}
-            {% else %}
-                <p>Enter ward details and complaint context to see a risk prediction.</p>
-            {% endif %}
-        </div>
-    </div>
-</div>
-{% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-fill ward if user has location data (future enhancement)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add any client-side validation or enhancements here
+            const inputs = document.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    if (this.value < 0) this.value = 0;
+                    if (this.value > 100) this.value = 100;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

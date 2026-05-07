@@ -245,5 +245,4 @@ class DengueAIAssistant:
             'recommendations': recommendations,
             'timeline': 'Immediate action required within 24-48 hours',
             'coordination': 'Coordinate with local ward officers and health workers'
-        }</content>
-<parameter name="filePath">/Users/abhiroyal/Downloads/bang-main/ai_assistant.py
+        }

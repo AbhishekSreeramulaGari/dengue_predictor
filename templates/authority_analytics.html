@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Authority Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 2rem;
+        }
+        .metric-card {
+            transition: transform 0.2s;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .trend-up { color: #28a745; }
+        .trend-down { color: #dc3545; }
+        .trend-neutral { color: #6c757d; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('home') }}">
+                <i class="fas fa-shield-alt"></i> Authority Dashboard
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('authority_dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('authority_complaints') }}">
+                            <i class="fas fa-list"></i> Manage Complaints
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('authority_analytics') }}">
+                            <i class="fas fa-chart-bar"></i> Analytics
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('authority_ai_assistant') }}">
+                            <i class="fas fa-robot"></i> AI Assistant
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <span class="badge bg-warning text-dark me-3">
+                            <i class="fas fa-crown"></i> Authority Access
+                        </span>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-shield"></i> {{ user.email }}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2><i class="fas fa-chart-bar"></i> Dengue Analytics Dashboard</h2>
+                <p class="text-muted">Comprehensive insights for data-driven dengue control</p>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card metric-card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-exclamation-triangle fa-2x text-warning mb-3"></i>
+                        <div class="metric-value text-warning" id="totalComplaints">-</div>
+                        <h6 class="card-title">Total Complaints</h6>
+                        <small class="text-muted">This month</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card metric-card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-clock fa-2x text-info mb-3"></i>
+                        <div class="metric-value text-info" id="openComplaints">-</div>
+                        <h6 class="card-title">Open Complaints</h6>
+                        <small class="text-muted">Require attention</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card metric-card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-check-circle fa-2x text-success mb-3"></i>
+                        <div class="metric-value text-success" id="resolvedComplaints">-</div>
+                        <h6 class="card-title">Resolved</h6>
+                        <small class="text-muted">This month</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card metric-card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-percentage fa-2x text-primary mb-3"></i>
+                        <div class="metric-value text-primary" id="resolutionRate">-</div>
+                        <h6 class="card-title">Resolution Rate</h6>
+                        <small class="text-muted">Success rate</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-pie"></i> Complaint Status Distribution
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-calendar-alt"></i> Complaints Over Time
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ward Analysis -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-map-marked-alt"></i> Ward-wise Dengue Risk Analysis
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="wardTable">
+                                <thead>
+                                    <tr>
+                                        <th>Ward</th>
+                                        <th>Average Cases</th>
+                                        <th>Risk Level</th>
+                                        <th>Complaints</th>
+                                        <th>Priority</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Data will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Analysis -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-tags"></i> Complaint Categories
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-tachometer-alt"></i> Response Time Analysis
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center">
+                            <div class="h3 text-primary mb-3" id="avgResponseTime">-</div>
+                            <p class="text-muted">Average Response Time</p>
+                            <div class="progress mb-3">
+                                <div class="progress-bar bg-success" style="width: 75%"></div>
+                            </div>
+                            <small class="text-muted">Target: < 24 hours</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Insights and Recommendations -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-lightbulb"></i> AI-Generated Insights & Recommendations
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Key Insights:</h6>
+                                <ul id="insightsList">
+                                    <li>Loading insights...</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Recommended Actions:</h6>
+                                <ul id="recommendationsList">
+                                    <li>Loading recommendations...</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="text-end mt-3">
+                            <a href="{{ url_for('authority_ai_assistant') }}" class="btn btn-info">
+                                <i class="fas fa-robot"></i> Get Detailed AI Analysis
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sample data - in production, this would come from your API
+        const sampleData = {
+            totalComplaints: 245,
+            openComplaints: 67,
+            resolvedComplaints: 178,
+            resolutionRate: 73,
+            statusData: {
+                labels: ['Open', 'In Progress', 'Fixed', 'Closed'],
+                data: [67, 23, 89, 66],
+                colors: ['#ffc107', '#17a2b8', '#28a745', '#6c757d']
+            },
+            trendData: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                data: [45, 52, 38, 67, 89, 73]
+            },
+            wardData: [
+                { name: 'Ward 1', cases: 45.2, complaints: 12, priority: 'High' },
+                { name: 'Ward 2', cases: 38.7, complaints: 8, priority: 'Medium' },
+                { name: 'Ward 3', cases: 67.1, complaints: 18, priority: 'Very High' },
+                { name: 'Ward 4', cases: 29.4, complaints: 5, priority: 'Low' },
+                { name: 'Ward 5', cases: 52.8, complaints: 15, priority: 'High' }
+            ],
+            categoryData: {
+                labels: ['Garbage', 'Waterlogging', 'Mosquito Breeding', 'Other'],
+                data: [45, 32, 28, 15]
+            }
+        };
+
+        // Initialize charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update metrics
+            document.getElementById('totalComplaints').textContent = sampleData.totalComplaints;
+            document.getElementById('openComplaints').textContent = sampleData.openComplaints;
+            document.getElementById('resolvedComplaints').textContent = sampleData.resolvedComplaints;
+            document.getElementById('resolutionRate').textContent = sampleData.resolutionRate + '%';
+            document.getElementById('avgResponseTime').textContent = '18.5 hrs';
+
+            // Status distribution chart
+            new Chart(document.getElementById('statusChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: sampleData.statusData.labels,
+                    datasets: [{
+                        data: sampleData.statusData.data,
+                        backgroundColor: sampleData.statusData.colors
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+
+            // Trend chart
+            new Chart(document.getElementById('trendChart'), {
+                type: 'line',
+                data: {
+                    labels: sampleData.trendData.labels,
+                    datasets: [{
+                        label: 'Complaints',
+                        data: sampleData.trendData.data,
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Category chart
+            new Chart(document.getElementById('categoryChart'), {
+                type: 'bar',
+                data: {
+                    labels: sampleData.categoryData.labels,
+                    datasets: [{
+                        label: 'Complaints',
+                        data: sampleData.categoryData.data,
+                        backgroundColor: '#28a745'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Populate ward table
+            const wardTableBody = document.querySelector('#wardTable tbody');
+            sampleData.wardData.forEach(ward => {
+                const riskClass = ward.priority === 'Very High' ? 'text-danger' :
+                                ward.priority === 'High' ? 'text-warning' :
+                                ward.priority === 'Medium' ? 'text-info' : 'text-success';
+
+                const row = `
+                    <tr>
+                        <td>${ward.name}</td>
+                        <td>${ward.cases}</td>
+                        <td><span class="${riskClass}">${ward.priority}</span></td>
+                        <td>${ward.complaints}</td>
+                        <td><span class="badge bg-${ward.priority === 'Very High' ? 'danger' :
+                                                  ward.priority === 'High' ? 'warning' :
+                                                  ward.priority === 'Medium' ? 'info' : 'success'}">${ward.priority}</span></td>
+                    </tr>
+                `;
+                wardTableBody.innerHTML += row;
+            });
+
+            // Sample insights
+            document.getElementById('insightsList').innerHTML = `
+                <li>Ward 3 shows the highest dengue risk with 67.1 average cases</li>
+                <li>Garbage-related complaints are the most common (45%)</li>
+                <li>Resolution rate has improved to 73% this month</li>
+                <li>Peak complaint period is May-June (monsoon season)</li>
+            `;
+
+            document.getElementById('recommendationsList').innerHTML = `
+                <li>Focus fogging and cleanup operations in Ward 3</li>
+                <li>Increase garbage collection frequency in high-complaint areas</li>
+                <li>Launch awareness campaign about waterlogging prevention</li>
+                <li>Improve response time for mosquito breeding complaints</li>
+            `;
+        });
+    </script>
+</body>
+</html>
